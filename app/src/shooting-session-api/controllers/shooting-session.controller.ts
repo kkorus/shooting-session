@@ -1,7 +1,12 @@
 import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import { ShootingSessionService } from '../services';
 
 @Controller('shooting-sessions/')
 export class ShootingSessionController {
+  public constructor(
+    private readonly _shootingSessionService: ShootingSessionService
+  ) {}
+
   @Get(':id')
   public getSession(@Param('id') id: string): void {}
 
