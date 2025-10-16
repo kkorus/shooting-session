@@ -92,6 +92,8 @@ export class ShootingSessionService {
 
     // todo, nice to have:
     // * verify if event timestamp is greater than last event timestamp
+    // * verify if session is still open
+    // * verify if session is owned by the player
 
     this.sessionEventRepository.createSessionEvent(sessionId, type, timestamp, {
       hit: payload.hit,
