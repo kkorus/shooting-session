@@ -5,11 +5,16 @@ import { Session } from '../../data-access-layer';
 import { CreateSessionEventResponseDto } from '../dtos/create-session-event.dto';
 import { JwtAuthGuard } from '../guards';
 import { CurrentPlayerId } from '../decorators';
+import { CommandBus } from '@nestjs/cqrs';
+import { StartSessionCommand } from '../commands';
 
 @UseGuards(JwtAuthGuard)
 @Controller('shooting-sessions/')
 export class ShootingSessionController {
-  public constructor(private readonly shootingSessionService: ShootingSessionService) {}
+  public constructor(
+    private readonly shootingSessionService: ShootingSessionService,
+    private readonly commandBus: CommandBus,
+  ) {}
 
   @Get('ping')
   // curl -X GET http://localhost:3000/shooting-sessions/ping
@@ -34,10 +39,11 @@ export class ShootingSessionController {
   @HttpCode(201)
   public async startSession(@Body() dto: StartSessionDto, @CurrentPlayerId() playerId: string): Promise<void> {
     const { mode } = dto;
-    await this.shootingSessionService.startSession({
-      playerId,
-      mode,
-    });
+    await this.commandBus.execute(new StartSessionCommand(playerId, mode));
+    // await this.shootingSessionService.startSession({
+    //   playerId,
+    //   mode,
+    // });
   }
 
   // curl -X PUT http://localhost:3000/shooting-sessions/123/finish

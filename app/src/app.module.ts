@@ -5,11 +5,13 @@ import { ShootingSessionModule } from './shooting-session-api/shooting-session-a
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { DataAccessLayerModule, typeOrmModuleOptions } from './data-access-layer';
 import * as dotenv from 'dotenv';
+import { CqrsModule } from '@nestjs/cqrs';
 
 dotenv.config();
 
 @Module({
   imports: [
+    CqrsModule.forRoot(),
     TypeOrmModule.forRoot(typeOrmModuleOptions),
     PassportModule,
     JwtModule.register({

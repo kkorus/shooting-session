@@ -47,7 +47,7 @@ export class ShootingSessionService {
     return sessions;
   }
 
-  public async startSession(params: StartSessionParams): Promise<void> {
+  public async startSession(params: StartSessionParams): Promise<string> {
     const { playerId, mode } = params;
 
     const user = await this.userRepository.getById(playerId);
@@ -55,7 +55,8 @@ export class ShootingSessionService {
       throw new NotFoundException('User not found');
     }
 
-    this.sessionRepository.createSession(playerId, mode);
+    const session = this.sessionRepository.createSession(playerId, mode);
+    return session.id;
   }
 
   public async closeSession(sessionId: string): Promise<void> {
