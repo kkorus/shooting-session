@@ -19,6 +19,10 @@ export class SessionRepository {
     return session;
   }
 
+  public async update(sessionId: string, session: Partial<Pick<Session, 'finishedAt'>>): Promise<void> {
+    await this.sessionRepository.update(sessionId, session);
+  }
+
   public async deleteAll(): Promise<void> {
     await this.sessionRepository.delete({});
   }

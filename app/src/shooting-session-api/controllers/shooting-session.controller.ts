@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, Param, Post } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, Param, Post, Put } from '@nestjs/common';
 import { ShootingSessionService } from '../services/shooting-session.service';
 import * as uuid from 'uuid';
 import { StartSessionDto } from '../dtos';
@@ -33,9 +33,11 @@ export class ShootingSessionController {
     });
   }
 
+  @Put('/:id/finish')
+  public finishSession(@Param('id') id: string): Promise<void> {
+    return this.shootingSessionService.closeSession(id);
+  }
+
   @Post('/:id/events')
   public addSessionEvent(@Param('id') id: string, @Body() dto: any): void {}
-
-  @Post('/:id/finish')
-  public finishSession(@Param('id') id: string): void {}
 }

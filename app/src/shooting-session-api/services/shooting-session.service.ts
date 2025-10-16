@@ -33,4 +33,13 @@ export class ShootingSessionService {
 
     this.sessionRepository.createSession(playerId, mode);
   }
+
+  public async closeSession(sessionId: string): Promise<void> {
+    const session = await this.sessionRepository.findById(sessionId);
+    if (!session) {
+      throw new NotFoundException('Session not found');
+    }
+
+    await this.sessionRepository.update(sessionId, { finishedAt: new Date() });
+  }
 }
