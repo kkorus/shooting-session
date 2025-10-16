@@ -7,7 +7,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 export class UserRepository {
   public constructor(@InjectRepository(User) private readonly userRepository: Repository<User>) {}
 
-  public findById(id: string): Promise<User | null> {
+  public getById(id: string): Promise<User | null> {
     return this.userRepository.findOne({ where: { id } });
   }
 

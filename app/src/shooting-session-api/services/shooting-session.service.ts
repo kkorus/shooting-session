@@ -3,6 +3,7 @@ import { SessionRepository, UserRepository } from '../../data-access-layer/repos
 import { Session, SessionEvent } from '../../data-access-layer';
 import { SessionEventRepository } from '../../data-access-layer/repositories/session-event.repository';
 import { timestamp } from 'rxjs';
+import { calculateScore } from '../helpers/calculateScore';
 
 export interface StartSessionParams {
   playerId: string;
@@ -23,7 +24,7 @@ export class ShootingSessionService {
   ) {}
 
   public async getSessionById(sessionId: string): Promise<Session> {
-    const session = await this.sessionRepository.findById(sessionId);
+    const session = await this.sessionRepository.getById(sessionId);
     if (!session) {
       throw new NotFoundException('Session not found');
     }
@@ -36,7 +37,7 @@ export class ShootingSessionService {
   public async startSession(params: StartSessionParams): Promise<void> {
     const { playerId, mode } = params;
 
-    const user = await this.userRepository.findById(playerId);
+    const user = await this.userRepository.getById(playerId);
     if (!user) {
       throw new NotFoundException('User not found');
     }
@@ -45,12 +46,19 @@ export class ShootingSessionService {
   }
 
   public async closeSession(sessionId: string): Promise<void> {
-    const session = await this.sessionRepository.findById(sessionId);
+    const session = await this.sessionRepository.getById(sessionId);
     if (!session) {
       throw new NotFoundException('Session not found');
     }
 
-    await this.sessionRepository.update(sessionId, { finishedAt: new Date() });
+    const sessionEvents = await this.sessionEventRepository.getSessionEvents(sessionId, 'shot', {
+      hit: true,
+      distance: true,
+    });
+
+    const { score } = calculateScore(sessionEvents.map((e) => ({ hit: !!e.hit, distance: e.distance ?? 0 })));
+
+    await this.sessionRepository.update(sessionId, { finishedAt: new Date(), score });
   }
 
   public async addSessionEvent(
@@ -64,10 +72,13 @@ export class ShootingSessionService {
       throw new BadRequestException('Invalid event type');
     }
 
-    const session = await this.sessionRepository.findById(sessionId);
+    const session = await this.sessionRepository.getById(sessionId);
     if (!session) {
       throw new NotFoundException('Session not found');
     }
+
+    // todo, nice to have:
+    // * verify if event timestamp is greater than last event timestamp
 
     this.sessionEventRepository.createSessionEvent(sessionId, type, timestamp, {
       hit: payload.hit,

@@ -27,4 +27,16 @@ export class SessionEventRepository {
     });
     return sessionEvent;
   }
+
+  public getSessionEvents(
+    sessionId: string,
+    type: string,
+    projection?: { [K in keyof SessionEvent]?: boolean },
+  ): Promise<SessionEvent[]> {
+    return this.sessionEventRepository.find({
+      where: { sessionId, type },
+      order: { ts: 'ASC' },
+      select: projection,
+    });
+  }
 }

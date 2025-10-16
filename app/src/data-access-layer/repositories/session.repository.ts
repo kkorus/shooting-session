@@ -7,7 +7,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 export class SessionRepository {
   public constructor(@InjectRepository(Session) private readonly sessionRepository: Repository<Session>) {}
 
-  public findById(sessionId: string): Promise<Session | null> {
+  public getById(sessionId: string): Promise<Session | null> {
     return this.sessionRepository.findOne({ where: { id: sessionId } });
   }
 
@@ -19,7 +19,7 @@ export class SessionRepository {
     return session;
   }
 
-  public async update(sessionId: string, session: Partial<Pick<Session, 'finishedAt'>>): Promise<void> {
+  public async update(sessionId: string, session: Partial<Pick<Session, 'finishedAt' | 'score'>>): Promise<void> {
     await this.sessionRepository.update(sessionId, session);
   }
 
