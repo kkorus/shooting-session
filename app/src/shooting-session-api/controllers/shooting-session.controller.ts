@@ -1,8 +1,9 @@
 import { Body, Controller, Get, HttpCode, Param, Post, Put } from '@nestjs/common';
 import { ShootingSessionService } from '../services/shooting-session.service';
 import * as uuid from 'uuid';
-import { StartSessionDto } from '../dtos';
+import { StartSessionDto, CreateSessionEventDto } from '../dtos';
 import { Session } from '../../data-access-layer';
+import { CreateSessionEventResponseDto } from '../dtos/create-session-event.dto';
 
 @Controller('shooting-sessions/')
 export class ShootingSessionController {
@@ -39,5 +40,13 @@ export class ShootingSessionController {
   }
 
   @Post('/:id/events')
-  public addSessionEvent(@Param('id') id: string, @Body() dto: any): void {}
+  public async addSessionEvent(
+    @Param('id') id: string,
+    @Body() CreateSessionEventDto: CreateSessionEventDto,
+  ): Promise<CreateSessionEventResponseDto> {
+    const { type, timestamp, payload } = CreateSessionEventDto;
+    await this.shootingSessionService.addSessionEvent(id, type, timestamp, payload);
+
+    return { accepted: true };
+  }
 }

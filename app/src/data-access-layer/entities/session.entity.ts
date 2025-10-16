@@ -16,4 +16,7 @@ export class Session {
 
   @Column({ type: 'timestamptz', nullable: true })
   public finishedAt!: Date | null;
+
+  @Column({ type: 'int', nullable: true })
+  public score!: number | null;
 }
