@@ -2,6 +2,7 @@ import { Body, Controller, Get, HttpCode, Param, Post } from '@nestjs/common';
 import { ShootingSessionService } from '../services/shooting-session.service';
 import * as uuid from 'uuid';
 import { StartSessionDto } from '../dtos';
+import { Session } from '../../data-access-layer';
 
 @Controller('shooting-sessions/')
 export class ShootingSessionController {
@@ -14,7 +15,9 @@ export class ShootingSessionController {
   }
 
   @Get('/:id')
-  public getSession(@Param('id') id: string): void {}
+  public getSession(@Param('id') id: string): Promise<Session> {
+    return this.shootingSessionService.getSessionById(id);
+  }
 
   @Get('leaderboard')
   public getLeaderboard(): void {}

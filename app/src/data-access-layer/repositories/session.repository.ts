@@ -7,6 +7,10 @@ import { InjectRepository } from '@nestjs/typeorm';
 export class SessionRepository {
   public constructor(@InjectRepository(Session) private readonly sessionRepository: Repository<Session>) {}
 
+  public findById(sessionId: string): Promise<Session | null> {
+    return this.sessionRepository.findOne({ where: { id: sessionId } });
+  }
+
   public createSession(playerId: string, mode: string): Session {
     const session = this.sessionRepository.create({
       playerId,

@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { SessionRepository, UserRepository } from '../../data-access-layer/repositories';
+import { Session } from '../../data-access-layer';
 
 export interface StartSessionParams {
   playerId: string;
@@ -12,6 +13,15 @@ export class ShootingSessionService {
     private readonly userRepository: UserRepository,
     private readonly sessionRepository: SessionRepository,
   ) {}
+
+  public async getSessionById(sessionId: string): Promise<Session> {
+    const session = await this.sessionRepository.findById(sessionId);
+    if (!session) {
+      throw new NotFoundException('Session not found');
+    }
+
+    return session;
+  }
 
   public async startSession(params: StartSessionParams): Promise<void> {
     const { playerId, mode } = params;
