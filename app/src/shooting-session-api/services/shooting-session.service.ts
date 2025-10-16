@@ -1,8 +1,7 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { SessionRepository, UserRepository } from '../../data-access-layer/repositories';
-import { Session, SessionEvent } from '../../data-access-layer';
+import { Session } from '../../data-access-layer';
 import { SessionEventRepository } from '../../data-access-layer/repositories/session-event.repository';
-import { timestamp } from 'rxjs';
 import { calculateScore } from '../helpers/calculateScore';
 
 export interface StartSessionParams {
@@ -14,6 +13,13 @@ export interface SessionEventPayloadParams {
   hit: boolean;
   distance: number;
 }
+
+export interface GetLeaderboardParams {
+  mode: string;
+  limit?: number;
+}
+
+const DEFAULT_LIMIT = 50;
 
 @Injectable()
 export class ShootingSessionService {
@@ -32,7 +38,14 @@ export class ShootingSessionService {
     return session;
   }
 
-  public getLeaderboard(): void {}
+  public async getLeaderboard(params: GetLeaderboardParams): Promise<Session[]> {
+    const sessions = await this.sessionRepository.getMany({
+      mode: params.mode,
+      limit: params.limit ?? DEFAULT_LIMIT,
+      isFinished: true,
+    });
+    return sessions;
+  }
 
   public async startSession(params: StartSessionParams): Promise<void> {
     const { playerId, mode } = params;

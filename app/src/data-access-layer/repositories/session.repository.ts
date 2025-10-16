@@ -11,6 +11,20 @@ export class SessionRepository {
     return this.sessionRepository.findOne({ where: { id: sessionId } });
   }
 
+  public async getMany(params: { mode: string; limit: number; isFinished?: boolean }): Promise<Session[]> {
+    const rows = await this.sessionRepository
+      .createQueryBuilder('session')
+      .where('session.mode = :mode', { mode: params.mode })
+      .andWhere(params.isFinished ? 'session.finishedAt IS NOT NULL' : 'session.finishedAt IS NULL')
+      .orderBy('session.score', 'DESC')
+      .addOrderBy('session.finishedAt', 'ASC')
+      .addOrderBy('session.createdAt', 'ASC')
+      .limit(params.limit)
+      .select(['session.id', 'session.playerId', 'session.mode', 'session.score', 'session.finishedAt'])
+      .getRawMany<Session>();
+    return rows;
+  }
+
   public createSession(playerId: string, mode: string): Session {
     const session = this.sessionRepository.create({
       playerId,

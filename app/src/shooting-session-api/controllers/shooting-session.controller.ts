@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, Param, Post, Put } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, Param, Post, Put, Query } from '@nestjs/common';
 import { ShootingSessionService } from '../services/shooting-session.service';
 import * as uuid from 'uuid';
 import { StartSessionDto, CreateSessionEventDto } from '../dtos';
@@ -14,18 +14,21 @@ export class ShootingSessionController {
   public ping(): void {
     console.log('pong');
   }
-
+  // curl -X GET http://localhost:3000/shooting-sessions/123
   @Get('/:id')
   public getSession(@Param('id') id: string): Promise<Session> {
     return this.shootingSessionService.getSessionById(id);
   }
 
+  // curl -X GET http://localhost:3000/shooting-sessions/leaderboard?mode=arcade&limit=10
   @Get('leaderboard')
-  public getLeaderboard(): void {}
+  public getLeaderboard(@Query('mode') mode: string, @Query('limit') limit?: number): Promise<Session[]> {
+    return this.shootingSessionService.getLeaderboard({ mode, limit });
+  }
 
+  // curl -X POST http://localhost:3000/shooting-sessions -H "Content-Type: application/json" -d '{"mode": "arcade"}'
   @Post()
   @HttpCode(201)
-  // curl -X POST http://localhost:3000/shooting-sessions -H "Content-Type: application/json" -d '{"mode": "arcade"}'
   public async startSession(@Body() dto: StartSessionDto): Promise<void> {
     const { mode } = dto;
     await this.shootingSessionService.startSession({
@@ -34,11 +37,13 @@ export class ShootingSessionController {
     });
   }
 
+  // curl -X PUT http://localhost:3000/shooting-sessions/123/finish
   @Put('/:id/finish')
   public finishSession(@Param('id') id: string): Promise<void> {
     return this.shootingSessionService.closeSession(id);
   }
 
+  // curl -X POST http://localhost:3000/shooting-sessions/123/events -H "Content-Type: application/json" -d '{"type": "shot", "timestamp": "2021-01-01T00:00:00Z", "payload": {"hit": true, "distance": 10}}'
   @Post('/:id/events')
   public async addSessionEvent(
     @Param('id') id: string,
