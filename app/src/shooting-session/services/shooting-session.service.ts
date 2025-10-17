@@ -1,9 +1,9 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { SessionRepository, UserRepository } from '../../data-access-layer/repositories';
 import { Session } from '../../data-access-layer';
 import { SessionEventRepository } from '../../data-access-layer/repositories/session-event.repository';
 import { calculateScore } from '../helpers/calculateScore';
-import { SessionEventType } from '../../const';
+import { SESSION_EVENT_TYPES, SessionEventType } from '../../const';
 
 export interface StartSessionParams {
   playerId: string;
@@ -16,6 +16,7 @@ export interface SessionEventPayloadParams {
 }
 
 export interface GetLeaderboardParams {
+  playerId: string;
   mode: string;
   limit?: number;
 }
@@ -36,13 +37,20 @@ export class ShootingSessionService {
       throw new NotFoundException('Session not found');
     }
 
+    if (session.playerId !== playerId) {
+      throw new ForbiddenException('Player is not authorized to access this session');
+    }
+
     return session;
   }
 
   public async getLeaderboard(params: GetLeaderboardParams): Promise<Session[]> {
+    const { playerId, mode, limit } = params;
+
     const sessions = await this.sessionRepository.getMany({
-      mode: params.mode,
-      limit: params.limit ?? DEFAULT_LIMIT,
+      playerId,
+      mode,
+      limit: limit ?? DEFAULT_LIMIT,
       isFinished: true,
     });
     return sessions;
@@ -56,14 +64,25 @@ export class ShootingSessionService {
       throw new NotFoundException('User not found');
     }
 
+    // todo, nice to have:
+    // * verify if player has an open session
+
     const session = this.sessionRepository.createSession(playerId, mode);
     return session.id;
   }
 
-  public async closeSession(sessionId: string): Promise<void> {
+  public async closeSession(sessionId: string, playerId: string): Promise<void> {
     const session = await this.sessionRepository.getById(sessionId);
     if (!session) {
       throw new NotFoundException('Session not found');
+    }
+
+    if (session.playerId !== playerId) {
+      throw new ForbiddenException('Player is not authorized to close this session');
+    }
+
+    if (session.finishedAt) {
+      throw new BadRequestException('Session already closed');
     }
 
     const sessionEvents = await this.sessionEventRepository.getSessionEvents(sessionId, SessionEventType.SHOT, {
@@ -72,18 +91,17 @@ export class ShootingSessionService {
     });
 
     const { score } = calculateScore(sessionEvents.map((e) => ({ hit: !!e.hit, distance: e.distance ?? 0 })));
-
     await this.sessionRepository.update(sessionId, { finishedAt: new Date(), score });
   }
 
   public async createSessionEvent(
     sessionId: string,
+    playerId: string,
     type: SessionEventType,
     timestamp: Date,
     payload: SessionEventPayloadParams,
   ): Promise<void> {
-    const validEventTypes = [SessionEventType.SHOT]; // todo: add enum for event types
-    if (!validEventTypes.includes(type)) {
+    if (!SESSION_EVENT_TYPES.includes(type)) {
       throw new BadRequestException('Invalid event type');
     }
 
@@ -92,10 +110,20 @@ export class ShootingSessionService {
       throw new NotFoundException('Session not found');
     }
 
+    if (session.playerId !== playerId) {
+      throw new ForbiddenException('Player is not authorized to create events for this session');
+    }
+
+    if (session.finishedAt) {
+      throw new BadRequestException('Session already closed');
+    }
+
+    if (timestamp < session.startedAt) {
+      throw new BadRequestException('Event timestamp is before session start time');
+    }
+
     // todo, nice to have:
     // * verify if event timestamp is greater than last event timestamp
-    // * verify if session is still open
-    // * verify if session is owned by the player
 
     this.sessionEventRepository.createSessionEvent(sessionId, type, timestamp, {
       hit: payload.hit,

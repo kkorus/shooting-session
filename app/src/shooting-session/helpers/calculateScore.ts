@@ -1,4 +1,4 @@
-type Shot = { hit: boolean; distance: number };
+export type Shot = { hit: boolean; distance: number };
 
 export function calculateScore(shots: Shot[]): { score: number } {
   let score = 0;

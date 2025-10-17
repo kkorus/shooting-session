@@ -30,8 +30,12 @@ export class ShootingSessionController {
 
   // curl -X GET http://localhost:3000/shooting-sessions/leaderboard?mode=arcade&limit=10
   @Get('leaderboard')
-  public getLeaderboard(@Query('mode') mode: string, @Query('limit') limit?: number): Promise<Session[]> {
-    return this.queryBus.execute(new GetLeaderboardQuery(mode, limit));
+  public getLeaderboard(
+    @CurrentPlayerId() playerId: string,
+    @Query('mode') mode: string,
+    @Query('limit') limit?: number,
+  ): Promise<Session[]> {
+    return this.queryBus.execute(new GetLeaderboardQuery(playerId, mode, limit));
   }
 
   // curl -X POST http://localhost:3000/shooting-sessions -H "Content-Type: application/json" -d '{"mode": "arcade"}'

@@ -9,6 +9,6 @@ export class GetLeaderboardHandler implements IQueryHandler<GetLeaderboardQuery>
 
   public async execute(query: GetLeaderboardQuery): Promise<Session[]> {
     const { mode, limit } = query;
-    return this.shootingSessionService.getLeaderboard({ mode, limit });
+    return this.shootingSessionService.getLeaderboard({ playerId, mode, limit });
   }
 }

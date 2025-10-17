@@ -11,10 +11,16 @@ export class SessionRepository {
     return this.sessionRepository.findOne({ where: { id: sessionId } });
   }
 
-  public async getMany(params: { mode: string; limit: number; isFinished?: boolean }): Promise<Session[]> {
+  public async getMany(params: {
+    playerId: string;
+    mode: string;
+    limit: number;
+    isFinished?: boolean;
+  }): Promise<Session[]> {
     const rows = await this.sessionRepository
       .createQueryBuilder('session')
       .where('session.mode = :mode', { mode: params.mode })
+      .andWhere('session.playerId = :playerId', { playerId: params.playerId })
       .andWhere(params.isFinished ? 'session.finishedAt IS NOT NULL' : 'session.finishedAt IS NULL')
       .orderBy('session.score', 'DESC')
       .addOrderBy('session.finishedAt', 'ASC')
