@@ -1,7 +1,7 @@
 import { QueryHandler, IQueryHandler } from '@nestjs/cqrs';
 import { Session } from '../../data-access-layer';
 import { GetSessionQuery } from '../queries';
-import { ShootingSessionService } from '../services';
+import { ShootingSessionService } from '../../shooting-session/services';
 
 @QueryHandler(GetSessionQuery)
 export class GetSessionHandler implements IQueryHandler<GetSessionQuery> {

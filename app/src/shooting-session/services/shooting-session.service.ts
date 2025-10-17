@@ -3,6 +3,7 @@ import { SessionRepository, UserRepository } from '../../data-access-layer/repos
 import { Session } from '../../data-access-layer';
 import { SessionEventRepository } from '../../data-access-layer/repositories/session-event.repository';
 import { calculateScore } from '../helpers/calculateScore';
+import { SessionEventType } from '../../const';
 
 export interface StartSessionParams {
   playerId: string;
@@ -65,7 +66,7 @@ export class ShootingSessionService {
       throw new NotFoundException('Session not found');
     }
 
-    const sessionEvents = await this.sessionEventRepository.getSessionEvents(sessionId, 'shot', {
+    const sessionEvents = await this.sessionEventRepository.getSessionEvents(sessionId, SessionEventType.SHOT, {
       hit: true,
       distance: true,
     });
@@ -75,13 +76,13 @@ export class ShootingSessionService {
     await this.sessionRepository.update(sessionId, { finishedAt: new Date(), score });
   }
 
-  public async addSessionEvent(
+  public async createSessionEvent(
     sessionId: string,
-    type: string,
+    type: SessionEventType,
     timestamp: Date,
     payload: SessionEventPayloadParams,
   ): Promise<void> {
-    const validEventTypes = ['shot']; // todo: add enum for event types
+    const validEventTypes = [SessionEventType.SHOT]; // todo: add enum for event types
     if (!validEventTypes.includes(type)) {
       throw new BadRequestException('Invalid event type');
     }

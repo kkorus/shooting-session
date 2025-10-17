@@ -1,6 +1,6 @@
 import { CommandHandler } from '@nestjs/cqrs';
 import { StartSessionCommand } from '../commands';
-import { ShootingSessionService } from '../services';
+import { ShootingSessionService } from '../../shooting-session/services';
 
 @CommandHandler(StartSessionCommand)
 export class StartSessionHandler {

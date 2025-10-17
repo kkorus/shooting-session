@@ -2,6 +2,7 @@ import { Repository } from 'typeorm';
 import { Injectable } from '@nestjs/common';
 import { SessionEvent } from '../entities';
 import { InjectRepository } from '@nestjs/typeorm';
+import { SessionEventType } from '../../const';
 
 @Injectable()
 export class SessionEventRepository {
@@ -11,7 +12,7 @@ export class SessionEventRepository {
 
   public createSessionEvent(
     sessionId: string,
-    type: string,
+    type: SessionEventType,
     timestamp: Date,
     payload: {
       hit: boolean;
@@ -30,7 +31,7 @@ export class SessionEventRepository {
 
   public getSessionEvents(
     sessionId: string,
-    type: string,
+    type: SessionEventType,
     projection?: { [K in keyof SessionEvent]?: boolean },
   ): Promise<SessionEvent[]> {
     return this.sessionEventRepository.find({

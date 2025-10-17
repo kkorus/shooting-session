@@ -1,4 +1,5 @@
 import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { SessionEventType } from '@const';
 
 @Entity({ name: 'session_events' })
 export class SessionEvent {
@@ -8,8 +9,8 @@ export class SessionEvent {
   @Column({ type: 'uuid' })
   public sessionId!: string;
 
-  @Column({ type: 'varchar' })
-  public type!: string;
+  @Column({ type: 'enum', enum: SessionEventType })
+  public type!: SessionEventType;
 
   @Column({ type: 'timestamptz' })
   public ts!: Date;

@@ -1,5 +1,6 @@
 import { Type } from 'class-transformer';
-import { IsString, IsDate, IsBoolean, IsNumber, ValidateNested } from 'class-validator';
+import { IsDate, IsBoolean, IsNumber, ValidateNested, IsEnum } from 'class-validator';
+import { SessionEventType } from '@const';
 
 export class CreateSessionEventShotPayloadDto {
   @IsBoolean()
@@ -10,8 +11,8 @@ export class CreateSessionEventShotPayloadDto {
 }
 
 export class CreateSessionEventDto {
-  @IsString()
-  public type!: string;
+  @IsEnum(SessionEventType)
+  public type!: SessionEventType;
 
   @IsDate()
   public timestamp!: Date;
