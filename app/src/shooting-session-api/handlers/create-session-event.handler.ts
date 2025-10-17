@@ -7,7 +7,7 @@ export class CreateSessionEventHandler implements ICommandHandler<CreateSessionE
   public constructor(private readonly shootingSessionService: ShootingSessionService) {}
 
   public async execute(command: CreateSessionEventCommand): Promise<void> {
-    const { sessionId, type, timestamp, payload } = command;
-    return this.shootingSessionService.createSessionEvent(sessionId, type, timestamp, payload);
+    const { sessionId, playerId, type, timestamp, payload } = command;
+    return this.shootingSessionService.createSessionEvent(sessionId, playerId, type, timestamp, payload);
   }
 }

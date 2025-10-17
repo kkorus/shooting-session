@@ -22,13 +22,11 @@ export class ShootingSessionController {
     console.log('pong');
   }
 
-  // curl -X GET http://localhost:3000/shooting-sessions/123
   @Get(':id')
   public getSession(@Param('id') id: string, @CurrentPlayerId() playerId: string): Promise<Session> {
     return this.queryBus.execute(new GetSessionQuery(id, playerId));
   }
 
-  // curl -X GET http://localhost:3000/shooting-sessions/leaderboard?mode=arcade&limit=10
   @Get('leaderboard')
   public getLeaderboard(
     @CurrentPlayerId() playerId: string,
@@ -38,7 +36,6 @@ export class ShootingSessionController {
     return this.queryBus.execute(new GetLeaderboardQuery(playerId, mode, limit));
   }
 
-  // curl -X POST http://localhost:3000/shooting-sessions -H "Content-Type: application/json" -d '{"mode": "arcade"}'
   @Post()
   @HttpCode(201)
   public async startSession(@Body() dto: StartSessionDto, @CurrentPlayerId() playerId: string): Promise<void> {
@@ -46,21 +43,20 @@ export class ShootingSessionController {
     await this.commandBus.execute(new StartSessionCommand(playerId, mode));
   }
 
-  // curl -X PUT http://localhost:3000/shooting-sessions/123/finish
   @Put(':id/finish')
   public finishSession(@Param('id') id: string): Promise<void> {
     return this.commandBus.execute(new FinishSessionCommand(id));
   }
 
-  // curl -X POST http://localhost:3000/shooting-sessions/123/events -H "Content-Type: application/json" -d '{"type": "shot", "timestamp": "2021-01-01T00:00:00Z", "payload": {"hit": true, "distance": 10}}'
   @Post(':id/events')
   @HttpCode(201)
   public async createSessionEvent(
     @Param('id') id: string,
     @Body() CreateSessionEventDto: CreateSessionEventDto,
+    @CurrentPlayerId() playerId: string,
   ): Promise<CreateSessionEventResponseDto> {
     const { type, timestamp, payload } = CreateSessionEventDto;
-    await this.commandBus.execute(new CreateSessionEventCommand(id, type, timestamp, payload));
+    await this.commandBus.execute(new CreateSessionEventCommand(id, playerId, type, timestamp, payload));
 
     return { accepted: true };
   }
