@@ -14,7 +14,10 @@
     "rootDir": "app/src",
     "baseUrl": "app/src",
     "paths": {
-      "@/*": ["*"]
+      "@/*": ["*"],
+      "@const": ["const"],
+      "@shooting-session": ["shooting-session"],
+      "@data-access-layer": ["data-access-layer"]
     },
     "types": ["node"],
     "resolveJsonModule": true,
