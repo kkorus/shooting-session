@@ -12,8 +12,8 @@ export const typeOrmModuleOptions: TypeOrmModuleOptions = {
   logging: false,
 };
 
-export const dataSourceOptions: DataSourceOptions = {
-  ...(typeOrmModuleOptions as DataSourceOptions),
+export const initializeDataSource = async (url: string): Promise<DataSource> => {
+  const dataSource = new DataSource({ ...typeOrmModuleOptions, url } as DataSourceOptions);
+  await dataSource.initialize();
+  return dataSource;
 };
-
-export const AppDataSource = new DataSource(dataSourceOptions);

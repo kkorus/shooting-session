@@ -6,7 +6,8 @@
   "scripts": {
     "test": "jest",
     "start:dev": "nest start --watch",
-    "mint:token": "ts-node scripts/mint-token.ts",
+    "mint:token": "ts-node -r tsconfig-paths/register scripts/mint-token.ts",
+    "seed:users": "ts-node -r tsconfig-paths/register scripts/seed-users.ts",
     "format": "prettier --write ."
   },
   "repository": {
@@ -52,6 +53,7 @@
     "prettier": "^3.6.2",
     "ts-jest": "^29.1.2",
     "ts-node": "^10.9.2",
+    "tsconfig-paths": "^4.2.0",
     "tsx": "^4.20.6"
   }
 }
