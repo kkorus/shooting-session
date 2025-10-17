@@ -29,7 +29,7 @@ export class ShootingSessionService {
     private readonly sessionEventRepository: SessionEventRepository,
   ) {}
 
-  public async getSessionById(sessionId: string): Promise<Session> {
+  public async getSessionById(sessionId: string, playerId: string): Promise<Session> {
     const session = await this.sessionRepository.getById(sessionId);
     if (!session) {
       throw new NotFoundException('Session not found');

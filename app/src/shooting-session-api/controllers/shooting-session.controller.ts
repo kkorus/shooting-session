@@ -5,8 +5,9 @@ import { Session } from '../../data-access-layer';
 import { CreateSessionEventResponseDto } from '../dtos/create-session-event.dto';
 import { JwtAuthGuard } from '../guards';
 import { CurrentPlayerId } from '../decorators';
-import { CommandBus } from '@nestjs/cqrs';
+import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { StartSessionCommand } from '../commands';
+import { GetSessionQuery } from '../queries';
 
 @UseGuards(JwtAuthGuard)
 @Controller('shooting-sessions/')
@@ -14,6 +15,7 @@ export class ShootingSessionController {
   public constructor(
     private readonly shootingSessionService: ShootingSessionService,
     private readonly commandBus: CommandBus,
+    private readonly queryBus: QueryBus,
   ) {}
 
   @Get('ping')
@@ -24,8 +26,8 @@ export class ShootingSessionController {
 
   // curl -X GET http://localhost:3000/shooting-sessions/123
   @Get(':id')
-  public getSession(@Param('id') id: string): Promise<Session> {
-    return this.shootingSessionService.getSessionById(id);
+  public getSession(@Param('id') id: string, @CurrentPlayerId() playerId: string): Promise<Session> {
+    return this.queryBus.execute(new GetSessionQuery(id, playerId));
   }
 
   // curl -X GET http://localhost:3000/shooting-sessions/leaderboard?mode=arcade&limit=10

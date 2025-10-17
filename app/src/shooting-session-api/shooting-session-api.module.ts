@@ -5,8 +5,9 @@ import { ShootingSessionService } from './services/shooting-session.service';
 import { DataAccessLayerModule } from '../data-access-layer';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { StartSessionHandler } from './handlers/start-session.handler';
+import { GetSessionHandler } from './handlers';
 
-const handlers = [StartSessionHandler];
+const handlers = [StartSessionHandler, GetSessionHandler];
 
 @Module({
   imports: [DataAccessLayerModule, PassportModule],
