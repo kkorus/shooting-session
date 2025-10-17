@@ -7,7 +7,7 @@ export class FinishSessionHandler implements ICommandHandler<FinishSessionComman
   public constructor(private readonly shootingSessionService: ShootingSessionService) {}
 
   public async execute(command: FinishSessionCommand): Promise<void> {
-    const { sessionId } = command;
-    return this.shootingSessionService.closeSession(sessionId);
+    const { sessionId, playerId } = command;
+    return this.shootingSessionService.closeSession(sessionId, playerId);
   }
 }

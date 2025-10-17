@@ -44,8 +44,8 @@ export class ShootingSessionController {
   }
 
   @Put(':id/finish')
-  public finishSession(@Param('id') id: string): Promise<void> {
-    return this.commandBus.execute(new FinishSessionCommand(id));
+  public finishSession(@Param('id') id: string, @CurrentPlayerId() playerId: string): Promise<void> {
+    return this.commandBus.execute(new FinishSessionCommand(id, playerId));
   }
 
   @Post(':id/events')
