@@ -3,7 +3,7 @@ import { SessionRepository, UserRepository } from '../../data-access-layer/repos
 import { Session } from '../../data-access-layer';
 import { SessionEventRepository } from '../../data-access-layer/repositories/session-event.repository';
 import { calculateScore } from '../helpers/calculateScore';
-import { SESSION_EVENT_TYPES, SessionEventType, SessionMode } from '../../const';
+import { SESSION_EVENT_TYPES, SESSION_MODES, SessionEventType, SessionMode } from '../../const';
 
 export interface StartSessionParams {
   playerId: string;
@@ -58,6 +58,10 @@ export class ShootingSessionService {
 
   public async startSession(params: StartSessionParams): Promise<string> {
     const { playerId, mode } = params;
+
+    if (!SESSION_MODES.includes(mode)) {
+      throw new BadRequestException('Invalid session mode');
+    }
 
     const user = await this.userRepository.getById(playerId);
     if (!user) {
