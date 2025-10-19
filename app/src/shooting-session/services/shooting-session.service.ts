@@ -2,7 +2,7 @@ import { BadRequestException, ForbiddenException, Injectable, NotFoundException 
 import { SessionRepository, UserRepository } from '../../data-access-layer/repositories';
 import { Session } from '../../data-access-layer';
 import { SessionEventRepository } from '../../data-access-layer/repositories/session-event.repository';
-import { calculateScore } from '../helpers/calculateScore';
+import { calculateScore } from '../helpers/calculate-score';
 import { SESSION_EVENT_TYPES, SESSION_MODES, SessionEventType, SessionMode } from '../../const';
 
 export interface StartSessionParams {
