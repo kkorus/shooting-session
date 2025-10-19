@@ -7,7 +7,7 @@ import jwt from 'jsonwebtoken';
 import { DataSource } from 'typeorm';
 import { getDataSourceToken } from '@nestjs/typeorm';
 import { Session } from '../../src/data-access-layer';
-import { SessionEventType } from '../../src/const';
+import { SessionEventType, SessionMode } from '../../src/const';
 
 describe('Shooting Session - Integration Test', () => {
   let app: INestApplication;
@@ -59,7 +59,7 @@ describe('Shooting Session - Integration Test', () => {
 
   it('should complete a full shooting session workflow', async () => {
     // start a new session
-    const startResponse = await http.post('/shooting-sessions').set('Authorization', auth()).send({ mode: 'arcade' });
+    const startResponse = await http.post('/shooting-sessions').set('Authorization', auth()).send({ mode: SessionMode.ARCADE });
     expect(startResponse.status).toBe(201);
 
     const sessionId = startResponse.body.sessionId;
@@ -98,14 +98,14 @@ describe('Shooting Session - Integration Test', () => {
 
     expect(sessionResponse.body.id).toBe(sessionId);
     expect(sessionResponse.body.playerId).toBe(playerId);
-    expect(sessionResponse.body.mode).toBe('arcade');
+    expect(sessionResponse.body.mode).toBe(SessionMode.ARCADE);
     expect(sessionResponse.body.score).toBe(55);
     expect(sessionResponse.body.finishedAt).not.toBeNull();
 
     // get the leaderboard
     const leaderboardResponse = await http
       .get('/shooting-sessions/leaderboard')
-      .query({ mode: 'arcade', limit: 10 })
+      .query({ mode: SessionMode.ARCADE, limit: 10 })
       .set('Authorization', auth())
       .expect(200);
 

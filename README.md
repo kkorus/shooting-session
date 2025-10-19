@@ -7,10 +7,13 @@
 # 1. setup environment
 cp env.example .env
 
-# 2. start with Docker
+# 2. Install packages
+npm install
+
+# 3. start with Docker
 docker-compose up
 
-# 3. seed database and generate token
+# 4. seed database and generate token
 npm run seed:users
 npm run mint:token
 ```
@@ -28,3 +31,7 @@ Update the `@token` variable with the token from `npm run mint:token`, then clic
 - **API**: http://localhost:3001
 - **Database**: PostgreSQL on localhost:5432
 - **Adminer** (DB UI): http://localhost:8080
+
+## Run tests
+- `npm run test`
+- `npm run test:integration`

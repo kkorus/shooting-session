@@ -3,11 +3,11 @@ import { SessionRepository, UserRepository } from '../../data-access-layer/repos
 import { Session } from '../../data-access-layer';
 import { SessionEventRepository } from '../../data-access-layer/repositories/session-event.repository';
 import { calculateScore } from '../helpers/calculateScore';
-import { SESSION_EVENT_TYPES, SessionEventType } from '../../const';
+import { SESSION_EVENT_TYPES, SessionEventType, SessionMode } from '../../const';
 
 export interface StartSessionParams {
   playerId: string;
-  mode: string;
+  mode: SessionMode;
 }
 
 export interface SessionEventPayloadParams {
@@ -17,7 +17,7 @@ export interface SessionEventPayloadParams {
 
 export interface GetLeaderboardParams {
   playerId: string;
-  mode: string;
+  mode: SessionMode;
   limit?: number;
 }
 

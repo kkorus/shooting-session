@@ -38,7 +38,6 @@ services:
     depends_on:
       - db
     environment:
-      # For reference only; Adminer connects via UI.
       ADMINER_DEFAULT_SERVER: db
     ports:
       - "8080:8080"

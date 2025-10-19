@@ -13,6 +13,7 @@ import {
 } from '../commands';
 import { GetSessionQuery, GetLeaderboardQuery } from '../queries';
 import { LoggerService } from '../services';
+import { SessionMode } from '@const';
 
 @UseGuards(JwtAuthGuard)
 @Controller('shooting-sessions')
@@ -32,7 +33,7 @@ export class ShootingSessionController {
   @Get('leaderboard')
   public getLeaderboard(
     @CurrentPlayerId() playerId: string,
-    @Query('mode') mode: string,
+    @Query('mode') mode: SessionMode,
     @Query('limit') limit?: number,
   ): Promise<Session[]> {
     return this.queryBus.execute(new GetLeaderboardQuery(playerId, mode, limit));

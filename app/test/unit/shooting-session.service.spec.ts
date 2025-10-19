@@ -5,7 +5,7 @@ import { instance, mock, resetCalls, verify, when, anyString, anything, deepEqua
 import { ShootingSessionService } from '../../src/shooting-session/services';
 import { SessionRepository, UserRepository, SessionEventRepository } from '../../src/data-access-layer/repositories';
 import { Session, SessionEvent } from '../../src/data-access-layer';
-import { SessionEventType } from '../../src/const';
+import { SessionEventType, SessionMode } from '../../src/const';
 
 describe('ShootingSessionService', () => {
   let service: ShootingSessionService;
@@ -61,7 +61,7 @@ describe('ShootingSessionService', () => {
       const session: Session = {
         id: sessionId,
         playerId,
-        mode: 'standard',
+        mode: SessionMode.ARCADE,
         createdAt: new Date(),
         startedAt: new Date(),
         finishedAt: null,
@@ -148,7 +148,7 @@ describe('ShootingSessionService', () => {
       const mockSession: Session = {
         id: sessionId,
         playerId: otherPlayerId,
-        mode: 'standard',
+        mode: SessionMode.ARCADE,
         createdAt: new Date(),
         startedAt: new Date(),
         finishedAt: null,
@@ -170,7 +170,7 @@ describe('ShootingSessionService', () => {
       const mockSession: Session = {
         id: sessionId,
         playerId,
-        mode: 'standard',
+        mode: SessionMode.ARCADE,
         createdAt: new Date(),
         startedAt: new Date(),
         finishedAt: new Date(),
@@ -196,7 +196,7 @@ describe('ShootingSessionService', () => {
       const mockSession: Session = {
         id: sessionId,
         playerId,
-        mode: 'standard',
+        mode: SessionMode.ARCADE,
         createdAt: new Date(),
         startedAt: new Date(),
         finishedAt: null,
@@ -266,7 +266,7 @@ describe('ShootingSessionService', () => {
       const mockSession: Session = {
         id: sessionId,
         playerId,
-        mode: 'standard',
+        mode: SessionMode.ARCADE,
         createdAt: new Date(),
         startedAt: new Date(),
         finishedAt: null,
@@ -336,7 +336,7 @@ describe('ShootingSessionService', () => {
       const mockSession: Session = {
         id: sessionId,
         playerId,
-        mode: 'standard',
+        mode: SessionMode.ARCADE,
         createdAt: new Date(),
         startedAt: new Date(),
         finishedAt: null,

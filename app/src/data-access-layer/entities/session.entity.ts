@@ -1,4 +1,5 @@
 import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { SessionMode } from '@const';
 
 @Entity({ name: 'sessions' })
 export class Session {
@@ -8,8 +9,8 @@ export class Session {
   @Column({ type: 'varchar' })
   public playerId!: string;
 
-  @Column({ type: 'varchar' })
-  public mode!: string;
+  @Column({ type: 'enum', enum: SessionMode })
+  public mode!: SessionMode;
 
   @CreateDateColumn()
   public startedAt!: Date;

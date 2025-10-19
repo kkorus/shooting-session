@@ -2,6 +2,7 @@ import { Repository } from 'typeorm';
 import { Injectable } from '@nestjs/common';
 import { Session } from '../entities';
 import { InjectRepository } from '@nestjs/typeorm';
+import { SessionMode } from '@const';
 
 @Injectable()
 export class SessionRepository {
@@ -13,7 +14,7 @@ export class SessionRepository {
 
   public getMany(params: {
     playerId: string;
-    mode: string;
+    mode: SessionMode;
     limit: number;
     isFinished?: boolean;
   }): Promise<Session[]> {
@@ -29,7 +30,7 @@ export class SessionRepository {
       .getMany();
   }
 
-  public createSession(playerId: string, mode: string): Promise<Session> {
+  public createSession(playerId: string, mode: SessionMode): Promise<Session> {
     return this.sessionRepository.save({
       playerId,
       mode,
