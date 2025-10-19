@@ -7,7 +7,7 @@
 # 1. setup environment
 cp env.example .env
 
-# 2. Install packages
+# 2. install packages
 npm install
 
 # 3. start with Docker
