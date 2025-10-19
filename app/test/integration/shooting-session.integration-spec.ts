@@ -62,12 +62,13 @@ describe('Shooting Session - Integration Test', () => {
     const startResponse = await http.post('/shooting-sessions').set('Authorization', auth()).send({ mode: 'arcade' });
     expect(startResponse.status).toBe(201);
 
-    const sessions = await dataSource.query(
-      `SELECT id FROM sessions WHERE "playerId" = $1 ORDER BY "startedAt" DESC LIMIT 1`,
-      [playerId],
-    );
+    const sessionId = startResponse.body.sessionId;
+
+    const sessions = await dataSource.query(`SELECT id FROM sessions WHERE id = $1 AND "playerId" = $2`, [
+      sessionId,
+      playerId,
+    ]);
     expect(sessions.length).toBe(1);
-    const sessionId = sessions[0].id;
 
     // add shot events
     const shotEvents = [
