@@ -1,4 +1,4 @@
-import { calculateScore, Shot } from '../src/shooting-session/helpers/calculateScore';
+import { calculateScore, Shot } from '../../src/shooting-session/helpers/calculateScore';
 
 describe('calculateScore', () => {
   it('should return 10 points for a hit', () => {

@@ -15,7 +15,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
   }
 
-  public async validate(payload: JwtPayload): Promise<{ playerId: string }> {
+  public validate(payload: JwtPayload): Promise<{ playerId: string }> | { playerId: string } {
     if (!payload['playerId']) {
       throw new ForbiddenException('Missing playerId');
     }

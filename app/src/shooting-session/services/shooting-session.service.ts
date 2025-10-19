@@ -67,7 +67,7 @@ export class ShootingSessionService {
     // todo, nice to have:
     // * verify if player has an open session
 
-    const session = this.sessionRepository.createSession(playerId, mode);
+    const session = await this.sessionRepository.createSession(playerId, mode);
     return session.id;
   }
 
@@ -125,7 +125,7 @@ export class ShootingSessionService {
     // todo, nice to have:
     // * verify if event timestamp is greater than last event timestamp
 
-    this.sessionEventRepository.createSessionEvent(sessionId, type, timestamp, {
+    await this.sessionEventRepository.createSessionEvent(sessionId, type, timestamp, {
       hit: payload.hit,
       distance: payload.distance,
     });

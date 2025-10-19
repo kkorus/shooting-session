@@ -3,24 +3,33 @@ import { PassportModule } from '@nestjs/passport';
 import { ShootingSessionController } from './controllers';
 import { DataAccessLayerModule } from '../data-access-layer';
 import { JwtStrategy } from './strategies/jwt.strategy';
-import { GetSessionQuery, GetLeaderboardQuery } from './queries';
-import { StartSessionCommand, FinishSessionCommand, CreateSessionEventCommand } from './commands';
+import {
+  GetSessionHandler,
+  GetLeaderboardHandler,
+  StartSessionHandler,
+  FinishSessionHandler,
+  CreateSessionEventHandler,
+} from './handlers';
+import { ShootingSessionModule as ShootingSessionDomainModule } from '../shooting-session/shooting-session.module';
+import { LoggerService } from './services';
 
 const handlers = [
-  // queries
-  GetSessionQuery,
-  GetLeaderboardQuery,
-  // commands
-  StartSessionCommand,
-  FinishSessionCommand,
-  CreateSessionEventCommand,
+  // query handlers
+  GetSessionHandler,
+  GetLeaderboardHandler,
+  // command handlers
+  StartSessionHandler,
+  FinishSessionHandler,
+  CreateSessionEventHandler,
 ];
 
 const strategies = [JwtStrategy];
 
+const services = [LoggerService];
+
 @Module({
-  imports: [DataAccessLayerModule, PassportModule, ShootingSessionModule],
+  imports: [DataAccessLayerModule, PassportModule, ShootingSessionDomainModule],
   controllers: [ShootingSessionController],
-  providers: [...strategies, ...handlers],
+  providers: [...strategies, ...handlers, ...services],
 })
 export class ShootingSessionModule {}

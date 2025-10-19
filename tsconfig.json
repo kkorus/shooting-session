@@ -19,11 +19,13 @@
       "@shooting-session": ["shooting-session"],
       "@data-access-layer": ["data-access-layer"]
     },
-    "types": ["node"],
+    "types": ["node", "jest"],
     "resolveJsonModule": true,
     "sourceMap": true,
     "incremental": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "isolatedModules": true
   },
   "include": ["app/src/**/*.ts"],
   "exclude": ["node_modules", "dist", "coverage"]

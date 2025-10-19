@@ -2,10 +2,10 @@ import { BadRequestException, ForbiddenException, NotFoundException } from '@nes
 import { Test, TestingModule } from '@nestjs/testing';
 import { instance, mock, resetCalls, verify, when, anyString, anything, deepEqual } from '@johanblumenberg/ts-mockito';
 
-import { ShootingSessionService } from '../src/shooting-session/services';
-import { SessionRepository, UserRepository, SessionEventRepository } from '../src/data-access-layer/repositories';
-import { Session, SessionEvent } from '../src/data-access-layer';
-import { SessionEventType } from '../src/const';
+import { ShootingSessionService } from '../../src/shooting-session/services';
+import { SessionRepository, UserRepository, SessionEventRepository } from '../../src/data-access-layer/repositories';
+import { Session, SessionEvent } from '../../src/data-access-layer';
+import { SessionEventType } from '../../src/const';
 
 describe('ShootingSessionService', () => {
   let service: ShootingSessionService;

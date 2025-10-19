@@ -18,15 +18,14 @@ export class SessionEventRepository {
       hit: boolean;
       distance: number;
     },
-  ): SessionEvent {
-    const sessionEvent = this.sessionEventRepository.create({
+  ): Promise<SessionEvent> {
+    return this.sessionEventRepository.save({
       sessionId,
       type,
       ts: timestamp,
       hit: payload.hit,
       distance: payload.distance,
     });
-    return sessionEvent;
   }
 
   public getSessionEvents(

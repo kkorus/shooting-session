@@ -11,32 +11,29 @@ export class SessionRepository {
     return this.sessionRepository.findOne({ where: { id: sessionId } });
   }
 
-  public async getMany(params: {
+  public getMany(params: {
     playerId: string;
     mode: string;
     limit: number;
     isFinished?: boolean;
   }): Promise<Session[]> {
-    const rows = await this.sessionRepository
+    return this.sessionRepository
       .createQueryBuilder('session')
       .where('session.mode = :mode', { mode: params.mode })
       .andWhere('session.playerId = :playerId', { playerId: params.playerId })
       .andWhere(params.isFinished ? 'session.finishedAt IS NOT NULL' : 'session.finishedAt IS NULL')
       .orderBy('session.score', 'DESC')
       .addOrderBy('session.finishedAt', 'ASC')
-      .addOrderBy('session.createdAt', 'ASC')
+      .addOrderBy('session.startedAt', 'ASC')
       .limit(params.limit)
-      .select(['session.id', 'session.playerId', 'session.mode', 'session.score', 'session.finishedAt'])
-      .getRawMany<Session>();
-    return rows;
+      .getMany();
   }
 
-  public createSession(playerId: string, mode: string): Session {
-    const session = this.sessionRepository.create({
+  public createSession(playerId: string, mode: string): Promise<Session> {
+    return this.sessionRepository.save({
       playerId,
       mode,
     });
-    return session;
   }
 
   public async update(sessionId: string, session: Partial<Pick<Session, 'finishedAt' | 'score'>>): Promise<void> {

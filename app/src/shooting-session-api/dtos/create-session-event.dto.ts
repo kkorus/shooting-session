@@ -15,6 +15,7 @@ export class CreateSessionEventDto {
   public type!: SessionEventType;
 
   @IsDate()
+  @Type(() => Date)
   public timestamp!: Date;
 
   @ValidateNested()

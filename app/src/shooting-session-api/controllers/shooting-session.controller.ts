@@ -9,7 +9,7 @@ import { StartSessionCommand, FinishSessionCommand, CreateSessionEventCommand } 
 import { GetSessionQuery, GetLeaderboardQuery } from '../queries';
 
 @UseGuards(JwtAuthGuard)
-@Controller('shooting-sessions/')
+@Controller('shooting-sessions')
 export class ShootingSessionController {
   public constructor(
     private readonly commandBus: CommandBus,
@@ -22,11 +22,6 @@ export class ShootingSessionController {
     console.log('pong');
   }
 
-  @Get(':id')
-  public getSession(@Param('id') id: string, @CurrentPlayerId() playerId: string): Promise<Session> {
-    return this.queryBus.execute(new GetSessionQuery(id, playerId));
-  }
-
   @Get('leaderboard')
   public getLeaderboard(
     @CurrentPlayerId() playerId: string,
@@ -36,11 +31,17 @@ export class ShootingSessionController {
     return this.queryBus.execute(new GetLeaderboardQuery(playerId, mode, limit));
   }
 
+  @Get(':id')
+  public getSession(@Param('id') id: string, @CurrentPlayerId() playerId: string): Promise<Session> {
+    return this.queryBus.execute(new GetSessionQuery(id, playerId));
+  }
+
   @Post()
   @HttpCode(201)
-  public async startSession(@Body() dto: StartSessionDto, @CurrentPlayerId() playerId: string): Promise<void> {
+  public async startSession(@Body() dto: StartSessionDto, @CurrentPlayerId() playerId: string): Promise<{ sessionId: string }> {
     const { mode } = dto;
-    await this.commandBus.execute(new StartSessionCommand(playerId, mode));
+    const result = await this.commandBus.execute(new StartSessionCommand(playerId, mode));
+    return result;
   }
 
   @Put(':id/finish')

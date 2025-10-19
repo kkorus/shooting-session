@@ -1,7 +1,7 @@
 import 'dotenv/config';
-import { initializeDataSource } from '../app/src/data-access-layer';
 import { User } from '../app/src/data-access-layer/entities';
-import { DataSource } from 'typeorm';
+import { DataSource, DataSourceOptions } from 'typeorm';
+import { getTypeOrmConfig } from '../app/src/data-access-layer/typeorm.config';
 
 async function main() {
   const url = process.env['DATABASE_URL_LOCALHOST'] as string;
@@ -9,10 +9,11 @@ async function main() {
     throw new Error('DATABASE_URL_LOCALHOST is not set in the environment variables');
   }
 
-  let dataSource: DataSource | undefined;
+  const config = getTypeOrmConfig(false, url);
+  const dataSource = new DataSource(config as DataSourceOptions);
 
   try {
-    dataSource = await initializeDataSource(url);
+    await dataSource.initialize();
     const userRepository = dataSource.getRepository(User);
 
     const users: Pick<User, 'id' | 'email'>[] = [
@@ -27,18 +28,22 @@ async function main() {
     for (const user of users) {
       console.log(`User ${user.id}: ${user.email}`);
     }
-    await dataSource.destroy();
-    process.exit(0);
   } catch (err) {
-    if (dataSource) {
+    console.error('Error seeding users:', err);
+    throw err;
+  } finally {
+    if (dataSource.isInitialized) {
       await dataSource.destroy();
     }
-
-    throw err;
   }
 }
 
-main().catch(async (e) => {
-  console.error(e);
-  process.exit(1);
-});
+main()
+  .then(() => {
+    console.log('Script completed successfully');
+    process.exit(0);
+  })
+  .catch((e) => {
+    console.error('✗ Script failed');
+    process.exit(1);
+  });
