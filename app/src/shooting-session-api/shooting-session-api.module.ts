@@ -9,6 +9,7 @@ import {
   StartSessionHandler,
   FinishSessionHandler,
   CreateSessionEventHandler,
+  DeleteAllDataHandler,
 } from './handlers';
 import { ShootingSessionModule as ShootingSessionDomainModule } from '../shooting-session/shooting-session.module';
 import { LoggerService } from './services';
@@ -21,6 +22,7 @@ const handlers = [
   StartSessionHandler,
   FinishSessionHandler,
   CreateSessionEventHandler,
+  DeleteAllDataHandler,
 ];
 
 const strategies = [JwtStrategy];

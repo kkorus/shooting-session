@@ -1,0 +1,67 @@
+### Variables
+@baseUrl = http://localhost:3001
+@token = JWT_TOKEN_HERE
+
+# example session id from start session response
+@sessionId = a6da5d1d-0f63-4ae5-93a2-c6a79ebcec99 
+
+### ping
+GET {{baseUrl}}/shooting-sessions/ping HTTP/1.1
+Authorization: Bearer {{token}}
+
+### start a new shooting session
+POST {{baseUrl}}/shooting-sessions HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "mode": "arcade"
+}
+
+### get session by id
+GET {{baseUrl}}/shooting-sessions/{{sessionId}} HTTP/1.1
+Authorization: Bearer {{token}}
+
+### create a session event (shot hit)
+POST {{baseUrl}}/shooting-sessions/{{sessionId}}/events HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "type": "shot",
+  "timestamp": "2025-10-25T12:00:00.000Z",
+  "payload": {
+    "hit": true,
+    "distance": 15
+  }
+}
+
+### create a session event (shot miss)
+POST {{baseUrl}}/shooting-sessions/{{sessionId}}/events HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "type": "shot",
+  "timestamp": "2025-10-25T12:00:05.000Z",
+  "payload": {
+    "hit": false,
+    "distance": 20
+  }
+}
+
+### finish a session
+PUT {{baseUrl}}/shooting-sessions/{{sessionId}}/finish HTTP/1.1
+Authorization: Bearer {{token}}
+
+### get leaderboard (arcade mode)
+GET {{baseUrl}}/shooting-sessions/leaderboard?mode=arcade HTTP/1.1
+Authorization: Bearer {{token}}
+
+### get leaderboard (arcade mode, limited to top 10)
+GET {{baseUrl}}/shooting-sessions/leaderboard?mode=arcade&limit=10 HTTP/1.1
+Authorization: Bearer {{token}}
+
+### delete all data (users, sessions, events)
+DELETE {{baseUrl}}/shooting-sessions HTTP/1.1
+Authorization: Bearer {{token}}

@@ -12,6 +12,6 @@ export class UserRepository {
   }
 
   public async deleteAll(): Promise<void> {
-    await this.userRepository.delete({});
+    await this.userRepository.clear();
   }
 }

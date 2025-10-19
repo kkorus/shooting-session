@@ -15,8 +15,8 @@ export class SessionEvent {
   @Column({ type: 'timestamptz' })
   public ts!: Date;
 
-  @Column({ type: 'bool', nullable: true })
-  public hit!: boolean | null;
+  @Column({ type: 'bool', nullable: false })
+  public hit!: boolean;
 
   @Column({ type: 'float8', nullable: true })
   public distance!: number | null;

@@ -41,6 +41,6 @@ export class SessionRepository {
   }
 
   public async deleteAll(): Promise<void> {
-    await this.sessionRepository.delete({});
+    await this.sessionRepository.clear();
   }
 }

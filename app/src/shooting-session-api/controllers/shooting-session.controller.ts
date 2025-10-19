@@ -1,11 +1,16 @@
-import { Body, Controller, Get, HttpCode, Param, Post, Put, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, Param, Post, Put, Query, UseGuards } from '@nestjs/common';
 import { StartSessionDto, CreateSessionEventDto } from '../dtos';
 import { Session } from '../../data-access-layer';
 import { CreateSessionEventResponseDto } from '../dtos/create-session-event.dto';
 import { JwtAuthGuard } from '../guards';
 import { CurrentPlayerId } from '../decorators';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
-import { StartSessionCommand, FinishSessionCommand, CreateSessionEventCommand } from '../commands';
+import {
+  StartSessionCommand,
+  FinishSessionCommand,
+  CreateSessionEventCommand,
+  DeleteAllDataCommand,
+} from '../commands';
 import { GetSessionQuery, GetLeaderboardQuery } from '../queries';
 import { LoggerService } from '../services';
 
@@ -40,7 +45,10 @@ export class ShootingSessionController {
 
   @Post()
   @HttpCode(201)
-  public async startSession(@Body() dto: StartSessionDto, @CurrentPlayerId() playerId: string): Promise<{ sessionId: string }> {
+  public async startSession(
+    @Body() dto: StartSessionDto,
+    @CurrentPlayerId() playerId: string,
+  ): Promise<{ sessionId: string }> {
     const { mode } = dto;
     const result = await this.commandBus.execute(new StartSessionCommand(playerId, mode));
     return result;
@@ -62,5 +70,10 @@ export class ShootingSessionController {
     await this.commandBus.execute(new CreateSessionEventCommand(id, playerId, type, timestamp, payload));
 
     return { accepted: true };
+  }
+
+  @Delete()
+  public async deleteAllData(): Promise<void> {
+    await this.commandBus.execute(new DeleteAllDataCommand());
   }
 }

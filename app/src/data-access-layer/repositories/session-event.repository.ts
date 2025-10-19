@@ -39,4 +39,8 @@ export class SessionEventRepository {
       select: projection,
     });
   }
+
+  public deleteAll(): Promise<void> {
+    return this.sessionEventRepository.clear();
+  }
 }
