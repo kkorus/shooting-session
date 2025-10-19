@@ -1,7 +1,5 @@
 import 'reflect-metadata';
 import { NestFactory } from '@nestjs/core';
-// todo: remove fastify adapter
-// import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { ExpressAdapter, NestExpressApplication } from '@nestjs/platform-express';

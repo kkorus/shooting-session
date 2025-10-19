@@ -7,6 +7,7 @@ import { CurrentPlayerId } from '../decorators';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { StartSessionCommand, FinishSessionCommand, CreateSessionEventCommand } from '../commands';
 import { GetSessionQuery, GetLeaderboardQuery } from '../queries';
+import { LoggerService } from '../services';
 
 @UseGuards(JwtAuthGuard)
 @Controller('shooting-sessions')
@@ -14,12 +15,13 @@ export class ShootingSessionController {
   public constructor(
     private readonly commandBus: CommandBus,
     private readonly queryBus: QueryBus,
+    private readonly loggerService: LoggerService,
   ) {}
 
   @Get('ping')
   // curl -X GET http://localhost:3000/shooting-sessions/ping
   public ping(): void {
-    console.log('pong');
+    this.loggerService.info('pong');
   }
 
   @Get('leaderboard')
@@ -53,10 +55,10 @@ export class ShootingSessionController {
   @HttpCode(201)
   public async createSessionEvent(
     @Param('id') id: string,
-    @Body() CreateSessionEventDto: CreateSessionEventDto,
+    @Body() createSessionEventDto: CreateSessionEventDto,
     @CurrentPlayerId() playerId: string,
   ): Promise<CreateSessionEventResponseDto> {
-    const { type, timestamp, payload } = CreateSessionEventDto;
+    const { type, timestamp, payload } = createSessionEventDto;
     await this.commandBus.execute(new CreateSessionEventCommand(id, playerId, type, timestamp, payload));
 
     return { accepted: true };
