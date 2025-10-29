@@ -1,1 +1,1 @@
-export * from './calculateScore';
+export * from './calculate-score';

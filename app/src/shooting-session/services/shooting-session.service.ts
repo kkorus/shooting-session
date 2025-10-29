@@ -1,9 +1,9 @@
-import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
-import { SessionRepository, UserRepository } from '../../data-access-layer/repositories';
-import { Session } from '../../data-access-layer';
-import { SessionEventRepository } from '../../data-access-layer/repositories/session-event.repository';
+import { Inject, Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
+import { Session, SessionEvent } from '../../domain/entities';
 import { calculateScore } from '../helpers/calculate-score';
 import { SESSION_EVENT_TYPES, SESSION_MODES, SessionEventType, SessionMode } from '../../const';
+import { ISessionRepository, ISessionEventRepository, IUserRepository } from '../../domain/repositories';
+import { SessionNotFoundError } from '../../domain/exceptions';
 
 export interface StartSessionParams {
   playerId: string;
@@ -26,20 +26,18 @@ const DEFAULT_LIMIT = 50;
 @Injectable()
 export class ShootingSessionService {
   public constructor(
-    private readonly userRepository: UserRepository,
-    private readonly sessionRepository: SessionRepository,
-    private readonly sessionEventRepository: SessionEventRepository,
+    @Inject(IUserRepository) private readonly userRepository: IUserRepository,
+    @Inject(ISessionRepository) private readonly sessionRepository: ISessionRepository,
+    @Inject(ISessionEventRepository) private readonly sessionEventRepository: ISessionEventRepository,
   ) {}
 
   public async getSessionById(sessionId: string, playerId: string): Promise<Session> {
     const session = await this.sessionRepository.getById(sessionId);
     if (!session) {
-      throw new NotFoundException('Session not found');
+      throw new SessionNotFoundError(sessionId);
     }
 
-    if (session.playerId !== playerId) {
-      throw new ForbiddenException('Player is not authorized to access this session');
-    }
+    session.ensureIsOwnedBy(playerId);
 
     return session;
   }
@@ -63,39 +61,37 @@ export class ShootingSessionService {
       throw new BadRequestException('Invalid session mode');
     }
 
-    const user = await this.userRepository.getById(playerId);
-    if (!user) {
+    const userExists = await this.userRepository.exists(playerId);
+    if (!userExists) {
       throw new NotFoundException('User not found');
     }
 
     // todo, nice to have:
     // * verify if player has an open session
 
-    const session = await this.sessionRepository.createSession(playerId, mode);
-    return session.id;
+    const session = Session.create(playerId, mode);
+    const savedSession = await this.sessionRepository.save(session);
+    return savedSession.getId();
   }
 
   public async closeSession(sessionId: string, playerId: string): Promise<void> {
     const session = await this.sessionRepository.getById(sessionId);
     if (!session) {
-      throw new NotFoundException('Session not found');
+      throw new SessionNotFoundError(sessionId);
     }
 
-    if (session.playerId !== playerId) {
-      throw new ForbiddenException('Player is not authorized to close this session');
-    }
-
-    if (session.finishedAt) {
-      throw new BadRequestException('Session already closed');
-    }
+    session.ensureIsOwnedBy(playerId);
+    session.ensureIsOpen();
 
     const sessionEvents = await this.sessionEventRepository.getSessionEvents(sessionId, SessionEventType.SHOT, {
       hit: true,
       distance: true,
     });
 
-    const { score } = calculateScore(sessionEvents.map((e) => ({ hit: !!e.hit, distance: e.distance ?? 0 })));
-    await this.sessionRepository.update(sessionId, { finishedAt: new Date(), score });
+    const { score } = calculateScore(sessionEvents.map((e) => ({ hit: e.getHit(), distance: e.getDistance() ?? 0 })));
+    session.close(score);
+
+    await this.sessionRepository.save(session);
   }
 
   public async createSessionEvent(
@@ -111,27 +107,21 @@ export class ShootingSessionService {
 
     const session = await this.sessionRepository.getById(sessionId);
     if (!session) {
-      throw new NotFoundException('Session not found');
+      throw new SessionNotFoundError(sessionId);
     }
 
-    if (session.playerId !== playerId) {
-      throw new ForbiddenException('Player is not authorized to create events for this session');
-    }
-
-    if (session.finishedAt) {
-      throw new BadRequestException('Session already closed');
-    }
-
-    if (timestamp < session.startedAt) {
-      throw new BadRequestException('Event timestamp is before session start time');
-    }
+    session.ensureIsOwnedBy(playerId);
+    session.ensureIsOpen();
+    session.validateEventTimestamp(timestamp);
 
     // todo, nice to have:
     // * verify if event timestamp is greater than last event timestamp
 
-    await this.sessionEventRepository.createSessionEvent(sessionId, type, timestamp, {
+    const event = SessionEvent.create(sessionId, type, timestamp, {
       hit: payload.hit,
       distance: payload.distance,
     });
+
+    await this.sessionEventRepository.save(event);
   }
 }

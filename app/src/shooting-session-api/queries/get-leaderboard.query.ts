@@ -1,5 +1,5 @@
 import { Query } from '@nestjs/cqrs';
-import { Session } from '../../data-access-layer';
+import { Session } from '../../domain/entities';
 import { SessionMode } from '@const';
 
 export class GetLeaderboardQuery extends Query<Session[]> {

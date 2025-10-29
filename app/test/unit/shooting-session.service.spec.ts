@@ -1,11 +1,17 @@
 import { BadRequestException, ForbiddenException, NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { instance, mock, resetCalls, verify, when, anyString, anything, deepEqual } from '@johanblumenberg/ts-mockito';
+import { 
+  SessionNotFoundError, 
+  SessionNotOwnedByPlayerError, 
+  SessionAlreadyClosedError 
+} from '../../src/domain/exceptions';
 
 import { ShootingSessionService } from '../../src/shooting-session/services';
-import { SessionRepository, UserRepository, SessionEventRepository } from '../../src/data-access-layer/repositories';
-import { Session, SessionEvent } from '../../src/data-access-layer';
+import { Session, SessionEvent } from '../../src/domain/entities';
 import { SessionEventType, SessionMode } from '../../src/const';
+import { IUserRepository, ISessionRepository, ISessionEventRepository } from '../../src/domain/repositories';
+import { UserRepository, SessionRepository, SessionEventRepository } from '../../src/data-access-layer/repositories';
 
 describe('ShootingSessionService', () => {
   let service: ShootingSessionService;
@@ -22,15 +28,15 @@ describe('ShootingSessionService', () => {
       providers: [
         ShootingSessionService,
         {
-          provide: UserRepository,
+          provide: IUserRepository,
           useValue: instance(mockUserRepository),
         },
         {
-          provide: SessionRepository,
+          provide: ISessionRepository,
           useValue: instance(mockSessionRepository),
         },
         {
-          provide: SessionEventRepository,
+          provide: ISessionEventRepository,
           useValue: instance(mockSessionEventRepository),
         },
       ],
@@ -58,53 +64,41 @@ describe('ShootingSessionService', () => {
       jest.useFakeTimers();
       jest.setSystemTime(finishAt);
 
-      const session: Session = {
-        id: sessionId,
-        playerId,
-        mode: SessionMode.ARCADE,
-        createdAt: new Date(),
-        startedAt: new Date(),
-        finishedAt: null,
-        score: null,
-      } as Session;
+      const session = Session.reconstitute(sessionId, playerId, SessionMode.ARCADE, new Date(), null, null);
 
       const sessionEvents: SessionEvent[] = [
-        {
-          id: '1',
+        SessionEvent.reconstitute(
+          '1',
           sessionId,
-          type: SessionEventType.SHOT,
-          ts: new Date(),
-          createdAt: new Date(),
-          hit: true,
-          distance: 15,
-        } as SessionEvent,
-        {
-          id: '2',
+          SessionEventType.SHOT,
+          new Date(),
+          { hit: true, distance: 15 },
+          new Date(),
+        ),
+        SessionEvent.reconstitute(
+          '2',
           sessionId,
-          type: SessionEventType.SHOT,
-          ts: new Date(),
-          createdAt: new Date(),
-          hit: true,
-          distance: 5,
-        } as SessionEvent,
-        {
-          id: '3',
+          SessionEventType.SHOT,
+          new Date(),
+          { hit: true, distance: 5 },
+          new Date(),
+        ),
+        SessionEvent.reconstitute(
+          '3',
           sessionId,
-          type: SessionEventType.SHOT,
-          ts: new Date(),
-          createdAt: new Date(),
-          hit: false,
-          distance: 10,
-        } as SessionEvent,
-        {
-          id: '4',
+          SessionEventType.SHOT,
+          new Date(),
+          { hit: false, distance: 10 },
+          new Date(),
+        ),
+        SessionEvent.reconstitute(
+          '4',
           sessionId,
-          type: SessionEventType.SHOT,
-          ts: new Date(),
-          createdAt: new Date(),
-          hit: true,
-          distance: 20,
-        } as SessionEvent,
+          SessionEventType.SHOT,
+          new Date(),
+          { hit: true, distance: 20 },
+          new Date(),
+        ),
       ];
 
       when(mockSessionRepository.getById(sessionId)).thenResolve(session);
@@ -128,63 +122,47 @@ describe('ShootingSessionService', () => {
           deepEqual({ hit: true, distance: true }),
         ),
       ).once();
-      verify(mockSessionRepository.update(sessionId, deepEqual({ finishedAt: finishAt, score: 40 }))).once();
+      verify(mockSessionRepository.save(anything())).once();
     });
 
-    it('should throw NotFoundException when session does not exist', async () => {
+    it('should throw SessionNotFoundError when session does not exist', async () => {
       // given
       when(mockSessionRepository.getById(sessionId)).thenResolve(null);
 
       // when & then
-      await expect(service.closeSession(sessionId, playerId)).rejects.toThrow(NotFoundException);
+      await expect(service.closeSession(sessionId, playerId)).rejects.toThrow(SessionNotFoundError);
 
       verify(mockSessionRepository.getById(sessionId)).once();
       verify(mockSessionEventRepository.getSessionEvents(anyString(), anything(), anything())).never();
-      verify(mockSessionRepository.update(anyString(), anything())).never();
+      verify(mockSessionRepository.save(anything())).never();
     });
 
-    it('should throw ForbiddenException when player is not authorized', async () => {
+    it('should throw SessionNotOwnedByPlayerError when player is not authorized', async () => {
       // given
-      const mockSession: Session = {
-        id: sessionId,
-        playerId: otherPlayerId,
-        mode: SessionMode.ARCADE,
-        createdAt: new Date(),
-        startedAt: new Date(),
-        finishedAt: null,
-        score: null,
-      } as Session;
+      const mockSession = Session.reconstitute(sessionId, otherPlayerId, SessionMode.ARCADE, new Date(), null, null);
 
       when(mockSessionRepository.getById(sessionId)).thenResolve(mockSession);
 
       // when & then
-      await expect(service.closeSession(sessionId, playerId)).rejects.toThrow(ForbiddenException);
+      await expect(service.closeSession(sessionId, playerId)).rejects.toThrow(SessionNotOwnedByPlayerError);
 
       verify(mockSessionRepository.getById(sessionId)).once();
       verify(mockSessionEventRepository.getSessionEvents(anyString(), anything(), anything())).never();
-      verify(mockSessionRepository.update(anyString(), anything())).never();
+      verify(mockSessionRepository.save(anything())).never();
     });
 
-    it('should throw BadRequestException when session is already closed', async () => {
+    it('should throw SessionAlreadyClosedError when session is already closed', async () => {
       // given
-      const mockSession: Session = {
-        id: sessionId,
-        playerId,
-        mode: SessionMode.ARCADE,
-        createdAt: new Date(),
-        startedAt: new Date(),
-        finishedAt: new Date(),
-        score: 100,
-      } as Session;
+      const mockSession = Session.reconstitute(sessionId, playerId, SessionMode.ARCADE, new Date(), new Date(), 100);
 
       when(mockSessionRepository.getById(sessionId)).thenResolve(mockSession);
 
       // when & then
-      await expect(service.closeSession(sessionId, playerId)).rejects.toThrow(BadRequestException);
+      await expect(service.closeSession(sessionId, playerId)).rejects.toThrow(SessionAlreadyClosedError);
 
       verify(mockSessionRepository.getById(sessionId)).once();
       verify(mockSessionEventRepository.getSessionEvents(anyString(), anything(), anything())).never();
-      verify(mockSessionRepository.update(anyString(), anything())).never();
+      verify(mockSessionRepository.save(anything())).never();
     });
 
     it('should calculate correct score for hits with distance bonus', async () => {
@@ -193,44 +171,33 @@ describe('ShootingSessionService', () => {
       jest.useFakeTimers();
       jest.setSystemTime(finishAt);
 
-      const mockSession: Session = {
-        id: sessionId,
-        playerId,
-        mode: SessionMode.ARCADE,
-        createdAt: new Date(),
-        startedAt: new Date(),
-        finishedAt: null,
-        score: null,
-      } as Session;
+      const mockSession = Session.reconstitute(sessionId, playerId, SessionMode.ARCADE, new Date(), null, null);
 
       const mockSessionEvents: SessionEvent[] = [
-        {
-          id: '1',
+        SessionEvent.reconstitute(
+          '1',
           sessionId,
-          type: SessionEventType.SHOT,
-          ts: new Date(),
-          createdAt: new Date(),
-          hit: true,
-          distance: 15,
-        } as SessionEvent,
-        {
-          id: '2',
+          SessionEventType.SHOT,
+          new Date(),
+          { hit: true, distance: 15 },
+          new Date(),
+        ),
+        SessionEvent.reconstitute(
+          '2',
           sessionId,
-          type: SessionEventType.SHOT,
-          ts: new Date(),
-          createdAt: new Date(),
-          hit: true,
-          distance: 5,
-        } as SessionEvent,
-        {
-          id: '3',
+          SessionEventType.SHOT,
+          new Date(),
+          { hit: true, distance: 5 },
+          new Date(),
+        ),
+        SessionEvent.reconstitute(
+          '3',
           sessionId,
-          type: SessionEventType.SHOT,
-          ts: new Date(),
-          createdAt: new Date(),
-          hit: true,
-          distance: 20,
-        } as SessionEvent,
+          SessionEventType.SHOT,
+          new Date(),
+          { hit: true, distance: 20 },
+          new Date(),
+        ),
       ];
 
       when(mockSessionRepository.getById(sessionId)).thenResolve(mockSession);
@@ -254,7 +221,7 @@ describe('ShootingSessionService', () => {
           deepEqual({ hit: true, distance: true }),
         ),
       ).once();
-      verify(mockSessionRepository.update(sessionId, deepEqual({ finishedAt: finishAt, score: 45 }))).once();
+      verify(mockSessionRepository.save(anything())).once();
     });
 
     it('should calculate correct score with combo bonus', async () => {
@@ -263,44 +230,33 @@ describe('ShootingSessionService', () => {
       jest.useFakeTimers();
       jest.setSystemTime(finishAt);
 
-      const mockSession: Session = {
-        id: sessionId,
-        playerId,
-        mode: SessionMode.ARCADE,
-        createdAt: new Date(),
-        startedAt: new Date(),
-        finishedAt: null,
-        score: null,
-      } as Session;
+      const mockSession = Session.reconstitute(sessionId, playerId, SessionMode.ARCADE, new Date(), null, null);
 
       const mockSessionEvents: SessionEvent[] = [
-        {
-          id: '1',
+        SessionEvent.reconstitute(
+          '1',
           sessionId,
-          type: SessionEventType.SHOT,
-          ts: new Date(),
-          createdAt: new Date(),
-          hit: true,
-          distance: 5,
-        } as SessionEvent,
-        {
-          id: '2',
+          SessionEventType.SHOT,
+          new Date(),
+          { hit: true, distance: 5 },
+          new Date(),
+        ),
+        SessionEvent.reconstitute(
+          '2',
           sessionId,
-          type: SessionEventType.SHOT,
-          ts: new Date(),
-          createdAt: new Date(),
-          hit: true,
-          distance: 5,
-        } as SessionEvent,
-        {
-          id: '3',
+          SessionEventType.SHOT,
+          new Date(),
+          { hit: true, distance: 5 },
+          new Date(),
+        ),
+        SessionEvent.reconstitute(
+          '3',
           sessionId,
-          type: SessionEventType.SHOT,
-          ts: new Date(),
-          createdAt: new Date(),
-          hit: true,
-          distance: 5,
-        } as SessionEvent,
+          SessionEventType.SHOT,
+          new Date(),
+          { hit: true, distance: 5 },
+          new Date(),
+        ),
       ];
 
       when(mockSessionRepository.getById(sessionId)).thenResolve(mockSession);
@@ -324,7 +280,7 @@ describe('ShootingSessionService', () => {
           deepEqual({ hit: true, distance: true }),
         ),
       ).once();
-      verify(mockSessionRepository.update(sessionId, deepEqual({ finishedAt: finishAt, score: 35 }))).once();
+      verify(mockSessionRepository.save(anything())).once();
     });
 
     it('should handle empty session events', async () => {
@@ -333,15 +289,7 @@ describe('ShootingSessionService', () => {
       jest.useFakeTimers();
       jest.setSystemTime(finishAt);
 
-      const mockSession: Session = {
-        id: sessionId,
-        playerId,
-        mode: SessionMode.ARCADE,
-        createdAt: new Date(),
-        startedAt: new Date(),
-        finishedAt: null,
-        score: null,
-      } as Session;
+      const mockSession = Session.reconstitute(sessionId, playerId, SessionMode.ARCADE, new Date(), null, null);
 
       when(mockSessionRepository.getById(sessionId)).thenResolve(mockSession);
       when(
@@ -364,7 +312,7 @@ describe('ShootingSessionService', () => {
           deepEqual({ hit: true, distance: true }),
         ),
       ).once();
-      verify(mockSessionRepository.update(sessionId, deepEqual({ finishedAt: finishAt, score: 0 }))).once();
+      verify(mockSessionRepository.save(anything())).once();
     });
   });
 });

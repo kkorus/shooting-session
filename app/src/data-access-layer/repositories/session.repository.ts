@@ -1,24 +1,27 @@
 import { Repository } from 'typeorm';
 import { Injectable } from '@nestjs/common';
-import { Session } from '../entities';
+import { Session as SessionEntity } from '../entities';
 import { InjectRepository } from '@nestjs/typeorm';
-import { SessionMode } from '@const';
+import { Session } from '../../domain/entities';
+import {
+  ISessionRepository,
+  GetManySessionsParams,
+} from '../../domain/repositories/session.repository.interface';
+import { SessionMapper } from '../../infrastructure/mappers';
 
 @Injectable()
-export class SessionRepository {
-  public constructor(@InjectRepository(Session) private readonly sessionRepository: Repository<Session>) {}
+export class SessionRepository implements ISessionRepository {
+  public constructor(
+    @InjectRepository(SessionEntity) private readonly sessionRepository: Repository<SessionEntity>,
+  ) {}
 
-  public getById(sessionId: string): Promise<Session | null> {
-    return this.sessionRepository.findOne({ where: { id: sessionId } });
+  public async getById(sessionId: string): Promise<Session | null> {
+    const entity = await this.sessionRepository.findOne({ where: { id: sessionId } });
+    return entity ? SessionMapper.toDomain(entity) : null;
   }
 
-  public getMany(params: {
-    playerId: string;
-    mode: SessionMode;
-    limit: number;
-    isFinished?: boolean;
-  }): Promise<Session[]> {
-    return this.sessionRepository
+  public async getMany(params: GetManySessionsParams): Promise<Session[]> {
+    const entities = await this.sessionRepository
       .createQueryBuilder('session')
       .where('session.mode = :mode', { mode: params.mode })
       .andWhere('session.playerId = :playerId', { playerId: params.playerId })
@@ -28,17 +31,14 @@ export class SessionRepository {
       .addOrderBy('session.startedAt', 'ASC')
       .limit(params.limit)
       .getMany();
+
+    return SessionMapper.toDomainArray(entities);
   }
 
-  public createSession(playerId: string, mode: SessionMode): Promise<Session> {
-    return this.sessionRepository.save({
-      playerId,
-      mode,
-    });
-  }
-
-  public async update(sessionId: string, session: Partial<Pick<Session, 'finishedAt' | 'score'>>): Promise<void> {
-    await this.sessionRepository.update(sessionId, session);
+  public async save(session: Session): Promise<Session> {
+    const entity = SessionMapper.toEntity(session);
+    const savedEntity = await this.sessionRepository.save(entity);
+    return SessionMapper.toDomain(savedEntity);
   }
 
   public async deleteAll(): Promise<void> {

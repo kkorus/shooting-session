@@ -1,43 +1,40 @@
 import { Repository } from 'typeorm';
 import { Injectable } from '@nestjs/common';
-import { SessionEvent } from '../entities';
+import { SessionEvent as SessionEventEntity } from '../entities';
 import { InjectRepository } from '@nestjs/typeorm';
 import { SessionEventType } from '../../const';
+import { SessionEvent } from '../../domain/entities';
+import {
+  ISessionEventRepository,
+  GetSessionEventsOptions,
+} from '../../domain/repositories/session-event.repository.interface';
+import { SessionEventMapper } from '../../infrastructure/mappers';
 
 @Injectable()
-export class SessionEventRepository {
+export class SessionEventRepository implements ISessionEventRepository {
   public constructor(
-    @InjectRepository(SessionEvent) private readonly sessionEventRepository: Repository<SessionEvent>,
+    @InjectRepository(SessionEventEntity)
+    private readonly sessionEventRepository: Repository<SessionEventEntity>,
   ) {}
 
-  public createSessionEvent(
-    sessionId: string,
-    type: SessionEventType,
-    timestamp: Date,
-    payload: {
-      hit: boolean;
-      distance: number;
-    },
-  ): Promise<SessionEvent> {
-    return this.sessionEventRepository.save({
-      sessionId,
-      type,
-      ts: timestamp,
-      hit: payload.hit,
-      distance: payload.distance,
-    });
+  public async save(event: SessionEvent): Promise<SessionEvent> {
+    const entity = SessionEventMapper.toEntity(event);
+    const savedEntity = await this.sessionEventRepository.save(entity);
+    return SessionEventMapper.toDomain(savedEntity);
   }
 
-  public getSessionEvents(
+  public async getSessionEvents(
     sessionId: string,
     type: SessionEventType,
-    projection?: { [K in keyof SessionEvent]?: boolean },
+    options: GetSessionEventsOptions,
   ): Promise<SessionEvent[]> {
-    return this.sessionEventRepository.find({
+    const entities = await this.sessionEventRepository.find({
       where: { sessionId, type },
       order: { ts: 'ASC' },
-      select: projection,
+      select: options as any,
     });
+
+    return SessionEventMapper.toDomainArray(entities);
   }
 
   public deleteAll(): Promise<void> {

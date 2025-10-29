@@ -1,14 +1,22 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { DeleteAllDataCommand } from '../commands';
-import { UserRepository, SessionRepository, SessionEventRepository } from '../../data-access-layer';
 import { LoggerService } from '../services';
+import { Inject } from '@nestjs/common';
+import {
+  IUserRepository,
+  ISessionRepository,
+  ISessionEventRepository,
+} from '../../domain/repositories';
 
 @CommandHandler(DeleteAllDataCommand)
 export class DeleteAllDataHandler implements ICommandHandler<DeleteAllDataCommand> {
   public constructor(
-    private readonly userRepository: UserRepository,
-    private readonly sessionRepository: SessionRepository,
-    private readonly sessionEventRepository: SessionEventRepository,
+    @Inject(IUserRepository)
+    private readonly userRepository: IUserRepository,
+    @Inject(ISessionRepository)
+    private readonly sessionRepository: ISessionRepository,
+    @Inject(ISessionEventRepository)
+    private readonly sessionEventRepository: ISessionEventRepository,
     private readonly loggerService: LoggerService,
   ) {}
 

@@ -1,5 +1,5 @@
 import { QueryHandler, IQueryHandler } from '@nestjs/cqrs';
-import { Session } from '../../data-access-layer';
+import { Session as DomainSession } from '../../domain/entities';
 import { GetLeaderboardQuery } from '../queries';
 import { ShootingSessionService } from '../../shooting-session/services';
 import { LoggerService } from '../services';
@@ -11,7 +11,7 @@ export class GetLeaderboardHandler implements IQueryHandler<GetLeaderboardQuery>
     private readonly loggerService: LoggerService,
   ) {}
 
-  public async execute(query: GetLeaderboardQuery): Promise<Session[]> {
+  public async execute(query: GetLeaderboardQuery): Promise<DomainSession[]> {
     const { playerId, mode, limit } = query;
     try {
       const sessions = await this.shootingSessionService.getLeaderboard({ playerId, mode, limit });

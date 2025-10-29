@@ -1,6 +1,6 @@
 import { Body, Controller, Delete, Get, HttpCode, Param, Post, Put, Query, UseGuards } from '@nestjs/common';
 import { StartSessionDto, CreateSessionEventDto } from '../dtos';
-import { Session } from '../../data-access-layer';
+import { Session as DomainSession } from '../../domain/entities';
 import { CreateSessionEventResponseDto } from '../dtos/create-session-event.dto';
 import { JwtAuthGuard } from '../guards';
 import { CurrentPlayerId } from '../decorators';
@@ -35,12 +35,12 @@ export class ShootingSessionController {
     @CurrentPlayerId() playerId: string,
     @Query('mode') mode: SessionMode,
     @Query('limit') limit?: number,
-  ): Promise<Session[]> {
+  ): Promise<DomainSession[]> {
     return this.queryBus.execute(new GetLeaderboardQuery(playerId, mode, limit));
   }
 
   @Get(':id')
-  public getSession(@Param('id') id: string, @CurrentPlayerId() playerId: string): Promise<Session> {
+  public getSession(@Param('id') id: string, @CurrentPlayerId() playerId: string): Promise<DomainSession> {
     return this.queryBus.execute(new GetSessionQuery(id, playerId));
   }
 
